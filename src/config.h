@@ -3,6 +3,23 @@
  * 屏幕引脚、按键、RTC/BMA 地址等，改硬件接线从这入手。
  */
 
+/*
+ * 【B级导读·扩展】config.h —— 全工程的"硬件接线图"与常量表
+ * ----------------------------------------------------------------------------
+ * 四段内容：
+ *   1) 板级宏（ARDUINO_WATCHY_V10/V15/V20 / ARDUINO_ESP32S3_DEV）：
+ *      Arduino IDE 里选哪块 Watchy 板，这里就展开哪套引脚——同一份库
+ *      覆盖 v1.0/v1.5/v2.0（ESP32）/v3.0（ESP32-S3）四种硬件。
+ *   2) 引脚宏：屏幕 SPI(CS/DC/RST/BUSY)、4 按键、加速度计 INT1/INT2、
+ *      马达、电池 ADC、RTC 中断。V3 的按键是低有效（active-low），
+ *      V1/V2 高有效——Watchy.cpp 用 ACTIVE_LOW 宏吸收这个差异。
+ *   3) 屏幕/WiFi/菜单常量：200x200 分辨率、AP 名、guiState 取值、
+ *      菜单项高 25px 共 6 项、对时字段序号。
+ *   4) BLE OTA 版本号常量（BLE.cpp 广播用）。
+ * 数据流位置：被所有文件 include，是唯一知道"哪个功能接在哪个 GPIO"的文件。
+ * 注意 BTN_PIN_MASK 等位掩码宏是单行定义，勿改成多行续行（\）。
+ */
+
 #ifndef CONFIG_H
 #define CONFIG_H
 

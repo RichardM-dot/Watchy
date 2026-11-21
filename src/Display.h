@@ -2,6 +2,23 @@
  * 【中文导读】Display.h —— 显示类声明（B级导读）
  */
 
+/*
+ * 【B级导读·扩展】Display.h —— WatchyDisplay：GxEPD2_EPD 的 200x200 特化子类
+ * ----------------------------------------------------------------------------
+ * 职责：SSD1681 控制器（Good Display GDEH0154D67 屏）的寄存器级驱动，
+ *       上承 GxEPD2_BW<WatchyDisplay,...>（Watchy::display 的类型），
+ *       最终由 Adafruit_GFX 提供 drawString/fillCircle 等绘图 API。
+ * 主要成员（实现见 Display.cpp）：
+ *   initWatchy()      Watchy 专用初始化（全刷标志 + 复位延时代入）
+ *   asyncPowerOn()    异步升压：把 ~100ms 上电等待与绘制重叠（省时关键）
+ *   setDarkBorder()   屏幕外圈黑色边框开关（0x3C BorderWaveform）
+ *   busyCallback()    静态回调：屏幕 BUSY 期间进 light sleep（busy=低功耗等）
+ *   writeImage/drawImage/refresh/_Init_Full/_Init_Part/_Update_Full/_Update_Part
+ *   hibernate()       深睡前把控制器置 deep sleep（0x10 命令），μA 级待机
+ * 关键常量：全刷 2600ms / 部分刷 500ms / 升压 100ms；reduceBoosterTime
+ *   压缩升压时序再省 ~200ms。深睡不丢画面（屏自保持），这是表盘架构根基。
+ */
+
 // Display Library for SPI e-paper panels from Dalian Good Display and boards from Waveshare.
 // Requires HW SPI and Adafruit_GFX. Caution: the e-paper panels require 3.3V supply AND data lines!
 //

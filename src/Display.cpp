@@ -4,6 +4,26 @@
  * 对上暴露 drawPixel/drawString 等 Adafruit_GFX 风格 API。
  */
 
+/*
+ * 【B级导读·扩展】Display.cpp —— SSD1681 寄存器级时序（Watchy 魔改 GxEPD2）
+ * ----------------------------------------------------------------------------
+ * 职责：把"画一帧"拆成 SPI 命令序列：初始化(_InitDisplay)→写显存(0x24 当前
+ *       /0x26 前一帧)→刷新命令(0x22+参数,0x20 执行)→等 BUSY。
+ * 主要函数清单：
+ *   busyCallback()            BUSY 拉低期间 esp_light_sleep_start() 省电等屏
+ *   initWatchy()/asyncPowerOn()/setDarkBorder()   Watchy 增强入口
+ *   writeScreenBuffer(_Again) 清/写整屏显存（0x24/0x26 两个 RAM 区）
+ *   _writeImage(_Part)        位图数据按窗口地址搬运（0x44/0x45 设窗，0x4E/0x4F 定位）
+ *   refresh(bool)/(x,y,w,h)   全刷 _Update_Full(0xF4) 或部分刷 _Update_Part(0xFC)
+ *   _PowerOn(Async)/_PowerOff 升降压电路控制（0x22 命令 + 等待）
+ *   _InitDisplay              复位后的寄存器初始化（含 booster 时序压缩）
+ *   hibernate()               0x10 深睡命令（深睡前 Watchy::deepSleep 调）
+ * 数据流位置：GxEPD2_BW(Adafruit_GFX) → 本类 → SPI → SSD1681 → 屏。
+ * Watchy 魔改点：asyncPowerOn 重叠上电、reduceBoosterTime 省 200ms、
+ * busyCallback 换成 light sleep、displayFullInit 存 RTC 慢存（跨深睡记住
+ * "上电后是否已全刷过"）。
+ */
+
 // Display Library for SPI e-paper panels from Dalian Good Display and boards from Waveshare.
 // Requires HW SPI and Adafruit_GFX. Caution: the e-paper panels require 3.3V supply AND data lines!
 //

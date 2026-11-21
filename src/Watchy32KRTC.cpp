@@ -1,3 +1,19 @@
+/*
+ * 【B级导读】Watchy32KRTC.cpp —— V3(S3) 内部 RTC 实现
+ * ----------------------------------------------------------------------------
+ * 职责：与 WatchyRTC 接口逐一对齐的"假外设真系统调用"封装：
+ *   config(datetime)  strptime 解析 → mktime → settimeofday() 设系统时钟
+ *   read(tm)          time()+localtime_r() 读系统时钟 → 手动换算进 tmElements_t
+ *   set(tm)           tmElements_t → mktime → settimeofday()
+ *   clearAlarm()      空实现（每分钟唤醒改由 ESP-IDF timer 唤醒源负责）
+ *   temperature()     恒 0（无温度传感）
+ * 数据流位置：ESP-IDF 系统时钟（newlib time）←→ TimeLib 的 tmElements_t。
+ * 年份换算注意：tm_year 是"自 1900"，tmElements_t.Year 是"自 1970"，
+ *   所以 read/set 里各有 ±70 的换算（timeInfo.tm_year - 70 / tm.Year + 70）。
+ * 坑：read() 依赖系统时区（TZ 未设置则默认 UTC），NTP 对时给的是
+ *   带偏移的 epoch，两套语义在此交汇——见 Docs/05 实测指南。
+ */
+
 #include "Watchy32KRTC.h"
 
 Watchy32KRTC::Watchy32KRTC(){}
